@@ -1,0 +1,117 @@
+<!--
+  // ----------------------------------------------------------------------------
+  // TreeHeatMapViewer.html
+  // ----------------------------------------------------------------------------
+  //  Purpose:
+  //    TreeHeatMapViewer is an javascript application to view phylogenetic trees
+  //    alongside of a heat map showing degree of matching.
+  //
+  //  Author:
+  //    Paavo Jumppanen
+  //
+  //  Copyright (C) 2017-2021,
+  //  CSIRO Marine and Atmospheric Research
+  //
+  //  This file makes use of the following for colour picking:
+  //
+  //  Spectrum Colorpicker v1.8.0
+  //  https://github.com/bgrins/spectrum
+  //  Author: Brian Grinstead
+  //  License: MIT
+  //
+  //  This file is part of TreeHeatMapViewer.
+  //
+  //  TreeHeatMapViewer is free software: you can redistribute it and/or modify
+  //  it under the terms of the GNU General Public License as published by
+  //  the Free Software Foundation, either version 3 of the License, or
+  //  (at your option) any later version.
+  //
+  //  TreeHeatMapViewer is distributed in the hope that it will be useful,
+  //  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  //  GNU General Public License for more details.
+  //
+  //  You should have received a copy of the GNU General Public License
+  //  along with TreeHeatMapViewer.  If not, see <https://www.gnu.org/licenses/>.
+  //
+  // ---------------------------------------------------------------------------+
+-->
+<!DOCTYPE html>
+<html lang = 'en' style="width:100%;height:100%;">
+
+<head>
+    <meta charset="utf-8">
+
+    <link rel="stylesheet" href="cvs-phylo-tree/cvs-phylo-tree.css">
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="cvs-phylo-tree/spectrum.css">
+
+    <script src="http://code.jquery.com/jquery-1.11.3.js" type="application/javascript"></script>
+    <script src="http://code.jquery.com/ui/1.12.1/jquery-ui.js" type="application/javascript"></script>
+    <script src="cvs-phylo-tree/spectrum.js" type="application/javascript"></script>
+    <script src="cvs-phylo-tree/gxlib.js" type="application/javascript"></script>
+    <script src="cvs-phylo-tree/cvs-phylo-tree.js" type="application/javascript"></script>
+</head>
+
+<body style="width:100%;height:100%;">
+  <div id="container" style="width:100%;height:100%;">
+    <div style="height:2em;">
+      <div id="select_session" style="float:left;padding-left:1em;padding-top:0.2em;padding-bottom:0.2em;">
+      </div>
+      <div style="float:left;padding-left:1em;padding-top:0.2em;padding-bottom:0.2em;">
+        <button id="filter_selection">Selection...</button>
+      </div>
+    </div>
+    <div id="working_area" style="width:100%;height:100%;">
+      <div id="myphylo">
+      </div>
+      <div id="heatmap">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var sizer     = gxSizer("container", undefined, {"layout-plan":[[0,2],[1,0]],"layout-dir":1,"margin":40});
+    var splitter  = gxSplitter("working_area", undefined, {"layout-dir":0,"margin":20});
+    var mytree    = CvsPhylotree("myphylo");
+    var myheatmap = CvsHeatmap("heatmap");
+    var TreeOpen  = otuTreeOpen("select_session");
+    var FilterBtn = document.getElementById("filter_selection");
+
+    mytree.addContextMenuCallback(mytree.defaultContextMenuCallback);
+    myheatmap.addClickCallback(myheatmap.defaultClickCallback);
+
+    function openTreeCallback(NewickTree, OTU_Data, OTU_Context)
+    {
+      myheatmap.unRegisterData();
+
+      mytree.tree(NewickTree);
+
+      myheatmap.registerData(OTU_Data, OTU_Context, mytree);
+
+      mytree.collapseAll(true);
+
+      mytree.onResize();
+    }
+
+    FilterBtn.addEventListener("click", function(event)
+                                        {
+                                          myheatmap.openSelection(mytree);
+                                        });
+
+    TreeOpen.addOpenedCallback(openTreeCallback);
+
+    splitter.addUpdateCallback(function()
+                               {
+                                 myheatmap.onResize();
+                                 mytree.onResize();
+                               });
+
+    window.addEventListener("resize", function(event)
+                                      {
+                                        sizer.updateLayout();
+                                        splitter.updateLayout();
+                                      });
+  </script>
+</body>
+</html>
